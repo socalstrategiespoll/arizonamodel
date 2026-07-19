@@ -468,4 +468,3 @@ def snapshot(n_sims=N_SIMS):
 
 if __name__ == "__main__":
     report_status()
-
