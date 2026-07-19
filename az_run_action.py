@@ -17,10 +17,12 @@ def main():
         print("Missing GIST_ID or GIST_TOKEN environment variables.")
         sys.exit(1)
 
+    maricopa_failed = False
     try:
         maricopa.update_model_from_maricopa()
         print("[Maricopa] updated OK")
     except Exception as e:
+        maricopa_failed = True
         print("[Maricopa] FAILED (may just mean file not posted yet):", e)
 
     pima_failed = False
@@ -36,6 +38,9 @@ def main():
         if pima_failed:
             skip.discard("Pima")
             print("[civicAPI] Pima's own feed failed — letting civicAPI cover Pima this cycle")
+        if maricopa_failed:
+            skip.discard("Maricopa")
+            print("[civicAPI] Maricopa's own feed failed — letting civicAPI cover Maricopa this cycle")
         updated = civicapi.update_model_from_civicapi(skip_counties=skip)
         print(f"[civicAPI] updated OK ({len(updated)} counties: {updated})")
     except Exception as e:
