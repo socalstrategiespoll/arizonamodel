@@ -7,6 +7,8 @@ OUTLIER_LAMBDA = 3.0
 TAU_FLOOR_STATE = 0.04
 TAU_FLOOR_REGION = 0.03
 TAU_FLOOR_COUNTY = 0.06
+TAU2_CAP = 0.05
+PRE_MARICOPA_STATE_DAMPENING = 0.4
 ALPHA_DAYOF_AMPLIFICATION = 1.3
 LINK_UNCERTAINTY = 0.02
 ALPHA_TURNOUT_DAYOF = 1.0
@@ -140,6 +142,7 @@ def dl_pool(estimates, variances):
     df = len(estimates) - 1
     c = np.sum(w_fixed) - np.sum(w_fixed ** 2) / np.sum(w_fixed)
     tau2 = max(0.0, (Q - df) / c) if c > 0 else 0.0
+    tau2 = min(tau2, TAU2_CAP)
 
     w_random = 1 / (variances + tau2)
     theta_random = np.sum(w_random * estimates) / np.sum(w_random)
@@ -189,6 +192,9 @@ def hierarchical_pool(obs, bucket, floor_state, floor_region, floor_county):
 
     shrink_state = coverage(bucket)
     state_mean *= shrink_state
+
+    if COUNTIES["Maricopa"].reported(bucket) is None:
+        state_mean *= PRE_MARICOPA_STATE_DAMPENING
 
     region_means, region_vars = {}, {}
     for region, names in REGIONS.items():
