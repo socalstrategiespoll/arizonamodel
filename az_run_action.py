@@ -23,14 +23,20 @@ def main():
     except Exception as e:
         print("[Maricopa] FAILED (may just mean file not posted yet):", e)
 
+    pima_failed = False
     try:
         pima.update_model_from_pima()
         print("[Pima] updated OK")
     except Exception as e:
+        pima_failed = True
         print("[Pima] FAILED (may just mean file not posted yet):", e)
 
     try:
-        updated = civicapi.update_model_from_civicapi()
+        skip = civicapi.HANDLED_BY_DEDICATED_FEED.copy()
+        if pima_failed:
+            skip.discard("Pima")
+            print("[civicAPI] Pima's own feed failed — letting civicAPI cover Pima this cycle")
+        updated = civicapi.update_model_from_civicapi(skip_counties=skip)
         print(f"[civicAPI] updated OK ({len(updated)} counties: {updated})")
     except Exception as e:
         print("[civicAPI] FAILED, falling back to SOS feed:", e)
