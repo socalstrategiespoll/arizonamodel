@@ -32,8 +32,16 @@ class FeedParseError(Exception):
     pass
 
 
+REQUEST_HEADERS = {
+    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+
 def fetch_raw(url=SOS_SUMMARY_URL, timeout=30):
-    resp = requests.get(url, timeout=timeout)
+    resp = requests.get(url, headers=REQUEST_HEADERS, timeout=timeout)
     resp.raise_for_status()
     return resp.text
 
