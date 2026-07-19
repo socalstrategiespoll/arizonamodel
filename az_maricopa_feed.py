@@ -115,11 +115,6 @@ def parse_maricopa_governor_totals(results_text):
         )
 
     totals = {"B": {"early": 0, "dayof": 0}, "S": {"early": 0, "dayof": 0}, "O": {"early": 0, "dayof": 0}}
-    raw_groups = {
-        "B": {g: 0 for g in COUNTING_GROUP_TO_BUCKET},
-        "S": {g: 0 for g in COUNTING_GROUP_TO_BUCKET},
-        "O": {g: 0 for g in COUNTING_GROUP_TO_BUCKET},
-    }
 
     for row in reader:
         contest_name = row.get(contest_col, "")
@@ -146,26 +141,18 @@ def parse_maricopa_governor_totals(results_text):
             except ValueError:
                 continue
             totals[cand_key][bucket] += votes
-            raw_groups[cand_key][group_name] += votes
 
-    return totals, raw_groups
+    return totals
 
 
 def update_model_from_maricopa(results_text=None, url=None):
     if results_text is None:
         results_text = fetch_results_txt(url)
-    totals, raw_groups = parse_maricopa_governor_totals(results_text)
+    totals = parse_maricopa_governor_totals(results_text)
 
     county = model.COUNTIES["Maricopa"]
     county.report("early", totals["B"]["early"], totals["S"]["early"], totals["O"]["early"])
     county.report("dayof", totals["B"]["dayof"], totals["S"]["dayof"], totals["O"]["dayof"])
-
-    model.RAW_DETAIL["Maricopa"] = {
-        "earlyVote": {k: raw_groups[k]["Early Vote"] for k in ("B", "S", "O")},
-        "electionDay": {k: raw_groups[k]["Election Day"] for k in ("B", "S", "O")},
-        "lateMailIn": {k: raw_groups[k]["Early A.R.S. 16-579"] for k in ("B", "S", "O")},
-        "provisional": {k: raw_groups[k]["Provisional"] for k in ("B", "S", "O")},
-    }
 
     return totals
 
@@ -176,6 +163,5 @@ if __name__ == "__main__":
     text = fetch_results_txt(url)
     print("First 500 chars:")
     print(text[:500])
-    totals, raw_groups = parse_maricopa_governor_totals(text)
+    totals = parse_maricopa_governor_totals(text)
     print(totals)
-    print(raw_groups)
