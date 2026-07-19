@@ -5,6 +5,14 @@ import requests
 import az_bayesian_model as model
 import az_live_feed as live_feed
 
+REQUEST_HEADERS = {
+    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+
 RACE_ID = 84359
 RACE_URL = f"https://civicapi.org/api/v2/race/{RACE_ID}"
 
@@ -23,7 +31,7 @@ class CivicAPIError(Exception):
 
 
 def fetch_race(race_id=RACE_ID, timeout=30):
-    resp = requests.get(f"https://civicapi.org/api/v2/race/{race_id}", timeout=timeout)
+    resp = requests.get(f"https://civicapi.org/api/v2/race/{race_id}", timeout=timeout, headers=REQUEST_HEADERS)
     resp.raise_for_status()
     return resp.json()
 
