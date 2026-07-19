@@ -6,6 +6,14 @@ import requests
 
 import az_bayesian_model as model
 
+REQUEST_HEADERS = {
+    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+
 PIMA_RESULTS_PAGE = "https://www.pima.gov/2865/Election-Results"
 
 CONTEST_NAME_TARGET = "governor"
@@ -30,7 +38,7 @@ class PimaFeedError(Exception):
 
 
 def find_current_csv_url(timeout=30):
-    resp = requests.get(PIMA_RESULTS_PAGE, timeout=timeout)
+    resp = requests.get(PIMA_RESULTS_PAGE, timeout=timeout, headers=REQUEST_HEADERS)
     resp.raise_for_status()
     html = resp.text
 
@@ -57,7 +65,7 @@ def find_current_csv_url(timeout=30):
 
 
 def fetch_csv_text(url, timeout=60):
-    resp = requests.get(url, timeout=timeout)
+    resp = requests.get(url, timeout=timeout, headers=REQUEST_HEADERS)
     resp.raise_for_status()
     return resp.text
 
