@@ -290,6 +290,17 @@ def get_dayof_factor(quantity):
                 county_tau2=county_tau2, n_reporting=dayof_direct["n_reporting"])
 
 
+RHO_BS = -0.85
+
+
+def correlated_pair(mean1, sd1, mean2, sd2, rho, n_sims):
+    z1 = RNG.normal(0, 1, n_sims)
+    z2 = RNG.normal(0, 1, n_sims)
+    x1 = mean1 + sd1 * z1
+    x2 = mean2 + sd2 * (rho * z1 + np.sqrt(1 - rho ** 2) * z2)
+    return x1, x2
+
+
 def draw_factor(factor, n_sims):
     state_draw = RNG.normal(factor["state_mean"], np.sqrt(factor["state_var"]), n_sims)
     region_draws = {
@@ -300,6 +311,26 @@ def draw_factor(factor, n_sims):
     return state_draw, region_draws, county_tau
 
 
+def draw_factor_pair_BS(factor_B, factor_S, rho, n_sims):
+    state_B, state_S = correlated_pair(
+        factor_B["state_mean"], np.sqrt(factor_B["state_var"]),
+        factor_S["state_mean"], np.sqrt(factor_S["state_var"]),
+        rho, n_sims
+    )
+    region_B, region_S = {}, {}
+    for g in REGIONS:
+        rb, rs = correlated_pair(
+            factor_B["region_means"][g], np.sqrt(factor_B["region_vars"][g]),
+            factor_S["region_means"][g], np.sqrt(factor_S["region_vars"][g]),
+            rho, n_sims
+        )
+        region_B[g] = rb
+        region_S[g] = rs
+    tau_B = np.sqrt(factor_B["county_tau2"])
+    tau_S = np.sqrt(factor_S["county_tau2"])
+    return state_B, state_S, region_B, region_S, tau_B, tau_S
+
+
 def simulate(n_sims=N_SIMS):
     factors = {}
     for bucket in ("early", "dayof"):
@@ -308,7 +339,14 @@ def simulate(n_sims=N_SIMS):
                 get_early_factor(quantity) if bucket == "early" else get_dayof_factor(quantity)
             )
 
-    draws = {k: draw_factor(f, n_sims) for k, f in factors.items()}
+    draws = {}
+    for bucket in ("early", "dayof"):
+        draws[(bucket, "T")] = draw_factor(factors[(bucket, "T")], n_sims)
+        state_B, state_S, region_B, region_S, tau_B, tau_S = draw_factor_pair_BS(
+            factors[(bucket, "B")], factors[(bucket, "S")], RHO_BS, n_sims
+        )
+        draws[(bucket, "B")] = (state_B, region_B, tau_B)
+        draws[(bucket, "S")] = (state_S, region_S, tau_S)
 
     final_B = np.zeros(n_sims)
     final_S = np.zeros(n_sims)
@@ -335,14 +373,15 @@ def simulate(n_sims=N_SIMS):
 
             state_B, region_B, tau_B = draws[(bucket, "B")]
             state_S, region_S, tau_S = draws[(bucket, "S")]
-            county_noise_B = RNG.normal(0, tau_B, n_sims)
-            county_noise_S = RNG.normal(0, tau_S, n_sims)
+            county_noise_B, county_noise_S = correlated_pair(0, tau_B, 0, tau_S, RHO_BS, n_sims)
 
             shift_B = state_B + region_B[c.region] + county_noise_B
             shift_S = state_S + region_S[c.region] + county_noise_S
 
-            sampling_noise_B = RNG.normal(0, 1 / np.sqrt(np.maximum(remaining, 1)), n_sims)
-            sampling_noise_S = RNG.normal(0, 1 / np.sqrt(np.maximum(remaining, 1)), n_sims)
+            sampling_sd = 1 / np.sqrt(np.maximum(remaining, 1))
+            sampling_noise_B, sampling_noise_S = correlated_pair(
+                0, sampling_sd, 0, sampling_sd, RHO_BS, n_sims
+            )
 
             logodds_B = prior_B_logodds + shift_B + sampling_noise_B
             logodds_S = prior_S_logodds + shift_S + sampling_noise_S
