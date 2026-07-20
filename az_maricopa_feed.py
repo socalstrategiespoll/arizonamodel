@@ -48,7 +48,20 @@ def find_current_results_txt_url():
             "The page structure may have changed — inspect the HTML directly."
         )
 
-    url = matches[0]
+    non_zero_matches = [m for m in matches if "zero" not in m.lower()]
+
+    if not non_zero_matches:
+        raise MaricopaFeedError(
+            f"Only found zero-report file(s) on the results page ({matches}) — "
+            "no live results file appears to be posted yet."
+        )
+
+    if len(non_zero_matches) > 1:
+        print(f"WARNING: found {len(non_zero_matches)} candidate result files "
+              f"(excluding zero-report): {non_zero_matches}. Using the first one — "
+              "verify this is correct if results look wrong.")
+
+    url = non_zero_matches[0]
     if url.startswith("//"):
         url = "https:" + url
     elif url.startswith("/"):
