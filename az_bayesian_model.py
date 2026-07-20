@@ -464,39 +464,6 @@ def county_point_estimate_remaining(name):
     return totals
 
 
-def decomposition():
-    real_B = 0.0
-    baseline_remaining_B = 0.0
-    adjusted_remaining_B = 0.0
-
-    for name, county in COUNTIES.items():
-        for bucket in ("early", "dayof"):
-            reported = county.reported(bucket)
-            reported_n = sum(reported) if reported else 0
-            if reported:
-                real_B += reported[0]
-
-            pure_prior_total = county.projected_total(bucket)
-            pure_remaining_n = max(0.0, pure_prior_total - reported_n)
-            pb, ps, po = county.prior_bso(bucket)
-            baseline_remaining_B += pure_remaining_n * pb
-
-        adjusted_remaining_B += county_point_estimate_remaining(name)["B"]
-
-    total_projected_B = real_B + adjusted_remaining_B
-    modeled_adjustment_B = adjusted_remaining_B - baseline_remaining_B
-
-    return {
-        "realVotesB": real_B,
-        "baselineRemainingB": baseline_remaining_B,
-        "modeledAdjustmentB": modeled_adjustment_B,
-        "totalProjectedB": total_projected_B,
-        "realVotesPct": real_B / total_projected_B if total_projected_B else 0,
-        "baselinePct": baseline_remaining_B / total_projected_B if total_projected_B else 0,
-        "modeledAdjustmentPct": modeled_adjustment_B / total_projected_B if total_projected_B else 0,
-    }
-
-
 def snapshot(n_sims=N_SIMS):
     counties_out = {}
     for name, county in COUNTIES.items():
@@ -543,7 +510,6 @@ def snapshot(n_sims=N_SIMS):
         "updatedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "counties": counties_out,
         "statewide": statewide_out,
-        "decomposition": decomposition(),
     }
 
 
