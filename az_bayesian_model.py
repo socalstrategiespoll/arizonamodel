@@ -517,12 +517,14 @@ def snapshot(n_sims=N_SIMS):
     B, S, O, total = simulate(n_sims)
     bShare, sShare, oShare = B / total * 100, S / total * 100, O / total * 100
     win_prob_B = float(np.mean(B > S) * 100)
+    margin_over_50_prob = float(np.mean((bShare - sShare) > 50) * 100)
 
     reported_total = sum(c["reported"]["total"] for c in counties_out.values())
     projected_total = sum(COUNTIES[n].total for n in COUNTIES)
 
     statewide_out = {
         "pBiggs": win_prob_B,
+        "pMarginOver50": margin_over_50_prob,
         "bShareMedian": float(np.median(bShare)),
         "bShareP25": float(np.percentile(bShare, 25)),
         "bShareP75": float(np.percentile(bShare, 75)),
