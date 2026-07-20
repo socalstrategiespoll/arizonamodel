@@ -27,7 +27,7 @@ CANDIDATE_TO_KEY = {
 COUNTING_GROUP_TO_BUCKET = {
     "Early Vote": "early",
     "Election Day": "dayof",
-    "Early A.R.S. 16-579": "dayof",
+    "Early A.R.S. 16-579": "late",
     "Provisional": "dayof",
 }
 
@@ -127,7 +127,7 @@ def parse_maricopa_governor_totals(results_text):
             f"No Votes_<CountingGroup> columns found. Actual header: {reader.fieldnames}"
         )
 
-    totals = {"B": {"early": 0, "dayof": 0}, "S": {"early": 0, "dayof": 0}, "O": {"early": 0, "dayof": 0}}
+    totals = {"B": {"early": 0, "dayof": 0, "late": 0}, "S": {"early": 0, "dayof": 0, "late": 0}, "O": {"early": 0, "dayof": 0, "late": 0}}
 
     for row in reader:
         contest_name = row.get(contest_col, "")
@@ -166,6 +166,7 @@ def update_model_from_maricopa(results_text=None, url=None):
     county = model.COUNTIES["Maricopa"]
     county.report("early", totals["B"]["early"], totals["S"]["early"], totals["O"]["early"])
     county.report("dayof", totals["B"]["dayof"], totals["S"]["dayof"], totals["O"]["dayof"])
+    county.report("late", totals["B"]["late"], totals["S"]["late"], totals["O"]["late"])
 
     return totals
 
