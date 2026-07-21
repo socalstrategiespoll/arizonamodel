@@ -362,6 +362,23 @@ def draw_factor_pair_BS(factor_B, factor_S, rho, n_sims):
     return state_B, state_S, region_B, region_S, tau_B, tau_S
 
 
+def county_specific_effect(county, bucket, quantity, factor):
+    tau2 = factor["county_tau2"]
+    if quantity == "T":
+        obs = county.observed_turnout(bucket)
+    else:
+        obs = county.observed_contrast(bucket, quantity)
+
+    if obs is None:
+        return 0.0, tau2
+
+    shift_c, var_c, n = obs
+    residual = shift_c - factor["state_mean"] - factor["region_means"][county.region]
+    posterior_var = 1 / (1 / tau2 + 1 / var_c)
+    posterior_mean = residual * (posterior_var / var_c)
+    return posterior_mean, posterior_var
+
+
 def simulate(n_sims=N_SIMS):
     factors = {}
     for bucket in ("early", "dayof", "late"):
@@ -398,7 +415,8 @@ def simulate(n_sims=N_SIMS):
                 final_O += reported[2]
 
             state_T, region_T, tau_T = draws[(bucket, "T")]
-            county_noise_T = RNG.normal(0, tau_T, n_sims)
+            post_mean_T, post_var_T = county_specific_effect(c, bucket, "T", factors[(bucket, "T")])
+            county_noise_T = RNG.normal(post_mean_T, np.sqrt(post_var_T), n_sims)
             turnout_shift = state_T + region_T[c.region] + county_noise_T
             adjusted_total = c.projected_total(bucket) * np.exp(turnout_shift)
             remaining = np.maximum(0.0, adjusted_total - reported_n)
@@ -409,7 +427,11 @@ def simulate(n_sims=N_SIMS):
 
             state_B, region_B, tau_B = draws[(bucket, "B")]
             state_S, region_S, tau_S = draws[(bucket, "S")]
-            county_noise_B, county_noise_S = correlated_pair(0, tau_B, 0, tau_S, RHO_BS, n_sims)
+            post_mean_B, post_var_B = county_specific_effect(c, bucket, "B", factors[(bucket, "B")])
+            post_mean_S, post_var_S = county_specific_effect(c, bucket, "S", factors[(bucket, "S")])
+            county_noise_B, county_noise_S = correlated_pair(
+                post_mean_B, np.sqrt(post_var_B), post_mean_S, np.sqrt(post_var_S), RHO_BS, n_sims
+            )
 
             shift_B = state_B + region_B[c.region] + county_noise_B
             shift_S = state_S + region_S[c.region] + county_noise_S
@@ -474,6 +496,8 @@ def county_point_estimate_remaining(name):
         reported_n = sum(reported) if reported else 0
 
         shift_T = factors["T"]["state_mean"] + factors["T"]["region_means"][county.region]
+        post_mean_T, _ = county_specific_effect(county, bucket, "T", factors["T"])
+        shift_T += post_mean_T
         adjusted_total = county.projected_total(bucket) * np.exp(shift_T)
         remaining = max(0.0, adjusted_total - reported_n)
         if remaining <= 0:
@@ -484,6 +508,10 @@ def county_point_estimate_remaining(name):
         prior_S_logodds = contrast_logodds(ps, po)
         shift_B = factors["B"]["state_mean"] + factors["B"]["region_means"][county.region]
         shift_S = factors["S"]["state_mean"] + factors["S"]["region_means"][county.region]
+        post_mean_B, _ = county_specific_effect(county, bucket, "B", factors["B"])
+        post_mean_S, _ = county_specific_effect(county, bucket, "S", factors["S"])
+        shift_B += post_mean_B
+        shift_S += post_mean_S
 
         uB = np.exp(prior_B_logodds + shift_B)
         uS = np.exp(prior_S_logodds + shift_S)
