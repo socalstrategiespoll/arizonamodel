@@ -40,7 +40,7 @@ REQUEST_HEADERS = {
 }
 
 
-def fetch_raw(url=SOS_SUMMARY_URL, timeout=30):
+def fetch_raw(url=SOS_SUMMARY_URL, timeout=12):
     resp = requests.get(url, headers=REQUEST_HEADERS, timeout=timeout)
     resp.raise_for_status()
     return resp.text
