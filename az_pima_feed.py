@@ -37,7 +37,7 @@ class PimaFeedError(Exception):
     pass
 
 
-def find_current_csv_url(timeout=30):
+def find_current_csv_url(timeout=12):
     resp = requests.get(PIMA_RESULTS_PAGE, timeout=timeout, headers=REQUEST_HEADERS)
     resp.raise_for_status()
     html = resp.text
@@ -64,7 +64,7 @@ def find_current_csv_url(timeout=30):
     return url
 
 
-def fetch_csv_text(url, timeout=60):
+def fetch_csv_text(url, timeout=15):
     resp = requests.get(url, timeout=timeout, headers=REQUEST_HEADERS)
     resp.raise_for_status()
     return resp.text
