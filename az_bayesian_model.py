@@ -38,19 +38,19 @@ REGIONS = {
 COUNTY_REGION = {c: r for r, cs in REGIONS.items() for c in cs}
 
 _CONFIG = {
-    "Maricopa":   dict(total=317952, early_share=0.7566, early_bso=(0.720, 0.246, 0.034), dayof_bso=(0.753, 0.213, 0.034), late_share=0.1182, late_bso=(0.753, 0.213, 0.034)),
+    "Maricopa":   dict(total=316289, early_share=0.7606, early_bso=(0.720, 0.246, 0.034), dayof_bso=(0.753, 0.213, 0.034), late_share=0.1188, late_bso=(0.753, 0.213, 0.034)),
     "Pima":   dict(total=57831, early_share=0.7747, early_bso=(0.707, 0.234, 0.059), dayof_bso=(0.738, 0.202, 0.059)),
     "Yavapai":   dict(total=41118, early_share=0.6975, early_bso=(0.727, 0.235, 0.038), dayof_bso=(0.760, 0.203, 0.038)),
     "Pinal":   dict(total=34478, early_share=0.7517, early_bso=(0.728, 0.234, 0.039), dayof_bso=(0.761, 0.201, 0.038)),
     "Mohave":   dict(total=30775, early_share=0.6849, early_bso=(0.730, 0.225, 0.045), dayof_bso=(0.762, 0.193, 0.045)),
     "Cochise":   dict(total=13267, early_share=0.5924, early_bso=(0.687, 0.249, 0.064), dayof_bso=(0.718, 0.218, 0.064)),
     "Yuma":   dict(total=12327, early_share=0.6993, early_bso=(0.712, 0.229, 0.059), dayof_bso=(0.744, 0.197, 0.059)),
-    "Navajo":   dict(total=16421, early_share=0.3553, early_bso=(0.720, 0.237, 0.043), dayof_bso=(0.752, 0.205, 0.043)),
+    "Navajo":   dict(total=19000, early_share=0.3071, early_bso=(0.720, 0.237, 0.043), dayof_bso=(0.752, 0.205, 0.043)),
     "Coconino":   dict(total=10122, early_share=0.5167, early_bso=(0.718, 0.235, 0.047), dayof_bso=(0.751, 0.203, 0.046)),
-    "Gila":   dict(total=11565, early_share=0.4863, early_bso=(0.757, 0.205, 0.038), dayof_bso=(0.790, 0.172, 0.038)),
-    "Apache":   dict(total=5652, early_share=0.3424, early_bso=(0.713, 0.209, 0.078), dayof_bso=(0.745, 0.178, 0.077)),
-    "Graham":   dict(total=6392, early_share=0.3519, early_bso=(0.725, 0.231, 0.044), dayof_bso=(0.757, 0.198, 0.045)),
-    "La Paz":   dict(total=2619, early_share=0.3661, early_bso=(0.728, 0.211, 0.061), dayof_bso=(0.760, 0.178, 0.062)),
+    "Gila":   dict(total=13000, early_share=0.4326, early_bso=(0.757, 0.205, 0.038), dayof_bso=(0.790, 0.172, 0.038)),
+    "Apache":   dict(total=6500, early_share=0.2977, early_bso=(0.713, 0.209, 0.078), dayof_bso=(0.745, 0.178, 0.077)),
+    "Graham":   dict(total=7500, early_share=0.2999, early_bso=(0.725, 0.231, 0.044), dayof_bso=(0.757, 0.198, 0.045)),
+    "La Paz":   dict(total=3000, early_share=0.3196, early_bso=(0.728, 0.211, 0.061), dayof_bso=(0.760, 0.178, 0.062)),
     "Santa Cruz":   dict(total=1608, early_share=0.6244, early_bso=(0.717, 0.218, 0.065), dayof_bso=(0.749, 0.187, 0.065)),
     "Greenlee":   dict(total=444, early_share=0.6004, early_bso=(0.751, 0.185, 0.065), dayof_bso=(0.785, 0.150, 0.064)),
 }
