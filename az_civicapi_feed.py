@@ -30,7 +30,7 @@ class CivicAPIError(Exception):
     pass
 
 
-def fetch_race(race_id=RACE_ID, timeout=30):
+def fetch_race(race_id=RACE_ID, timeout=12):
     resp = requests.get(f"https://civicapi.org/api/v2/race/{race_id}", timeout=timeout, headers=REQUEST_HEADERS)
     resp.raise_for_status()
     return resp.json()
