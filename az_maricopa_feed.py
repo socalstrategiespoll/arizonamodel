@@ -37,7 +37,7 @@ class MaricopaFeedError(Exception):
 
 
 def find_current_results_txt_url():
-    resp = requests.get(MARICOPA_RESULTS_PAGE, timeout=30, headers=REQUEST_HEADERS)
+    resp = requests.get(MARICOPA_RESULTS_PAGE, timeout=12, headers=REQUEST_HEADERS)
     resp.raise_for_status()
     html = resp.text
 
@@ -74,7 +74,7 @@ def find_current_results_txt_url():
 def fetch_results_txt(url=None):
     if url is None:
         url = find_current_results_txt_url()
-    resp = requests.get(url, timeout=60, headers=REQUEST_HEADERS)
+    resp = requests.get(url, timeout=15, headers=REQUEST_HEADERS)
     resp.raise_for_status()
     return resp.text
 
