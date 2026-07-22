@@ -369,14 +369,27 @@ def county_specific_effect(county, bucket, quantity, factor):
     else:
         obs = county.observed_contrast(bucket, quantity)
 
-    if obs is None:
-        return 0.0, tau2
+    if obs is not None:
+        shift_c, var_c, n = obs
+        residual = shift_c - factor["state_mean"] - factor["region_means"][county.region]
+        posterior_var = 1 / (1 / tau2 + 1 / var_c)
+        posterior_mean = residual * (posterior_var / var_c)
+        return posterior_mean, posterior_var
 
-    shift_c, var_c, n = obs
-    residual = shift_c - factor["state_mean"] - factor["region_means"][county.region]
-    posterior_var = 1 / (1 / tau2 + 1 / var_c)
-    posterior_mean = residual * (posterior_var / var_c)
-    return posterior_mean, posterior_var
+    if bucket != "early" and quantity in ("B", "S"):
+        early_obs = county.observed_contrast("early", quantity)
+        if early_obs is not None:
+            early_shift, early_var, n = early_obs
+            early_factor = get_early_factor(quantity)
+            early_residual = (early_shift - early_factor["state_mean"]
+                               - early_factor["region_means"][county.region])
+            amplified_mean = early_residual * ALPHA_DAYOF_AMPLIFICATION
+            amplified_var = (ALPHA_DAYOF_AMPLIFICATION ** 2) * early_var + LINK_UNCERTAINTY
+            posterior_var = 1 / (1 / tau2 + 1 / amplified_var)
+            posterior_mean = amplified_mean * (posterior_var / amplified_var)
+            return posterior_mean, posterior_var
+
+    return 0.0, tau2
 
 
 def simulate(n_sims=N_SIMS):
