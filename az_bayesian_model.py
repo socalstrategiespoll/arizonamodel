@@ -113,6 +113,11 @@ class County:
         if n == 0:
             return None
         pb, ps, po = self.prior_bso(bucket)
+        if quantity == "BS":
+            obs = np.log((b + 0.5) / (s + 0.5))
+            prior = np.log(pb / ps)
+            var = 1 / (b + 0.5) + 1 / (s + 0.5)
+            return obs - prior, var, n
         if quantity == "B":
             obs = np.log((b + 0.5) / (o + 0.5))
             prior = contrast_logodds(pb, po)
@@ -143,6 +148,38 @@ class County:
 
 
 COUNTIES = {name: County(name, **cfg) for name, cfg in _CONFIG.items()}
+
+
+def current_o_share_estimate(county, bucket):
+    counts = county.reported(bucket)
+    if counts is not None:
+        b, s, o = counts
+        n = b + s + o
+        if n > 0:
+            return o / n
+
+    for other_bucket in ("early", "dayof", "late"):
+        if other_bucket == bucket:
+            continue
+        counts2 = county.reported(other_bucket)
+        if counts2 is not None:
+            b, s, o = counts2
+            n = b + s + o
+            if n > 0:
+                return o / n
+
+    total_o, total_n = 0, 0
+    for c in COUNTIES.values():
+        for buck in ("early", "dayof", "late"):
+            r = c.reported(buck)
+            if r is not None:
+                total_o += r[2]
+                total_n += sum(r)
+    if total_n > 0:
+        return total_o / total_n
+
+    _, _, po = county.prior_bso(bucket)
+    return po
 
 
 def dl_pool(estimates, variances):
@@ -256,7 +293,7 @@ def blend(m1, v1, m2, v2):
 def get_early_factor(quantity):
     obs = {}
     for name, c in COUNTIES.items():
-        r = c.observed_contrast("early", quantity) if quantity in ("B", "S") else c.observed_turnout("early")
+        r = c.observed_contrast("early", quantity) if quantity in ("B", "S", "BS") else c.observed_turnout("early")
         if r is not None:
             obs[name] = r
     if quantity == "T":
@@ -274,7 +311,7 @@ def get_amplified_factor(bucket, quantity):
 
     obs = {}
     for name, c in COUNTIES.items():
-        r = c.observed_contrast(bucket, quantity) if quantity in ("B", "S") else c.observed_turnout(bucket)
+        r = c.observed_contrast(bucket, quantity) if quantity in ("B", "S", "BS") else c.observed_turnout(bucket)
         if r is not None:
             obs[name] = r
     if quantity == "T":
@@ -376,7 +413,7 @@ def county_specific_effect(county, bucket, quantity, factor):
         posterior_mean = residual * (posterior_var / var_c)
         return posterior_mean, posterior_var
 
-    if bucket != "early" and quantity in ("B", "S"):
+    if bucket != "early" and quantity in ("B", "S", "BS"):
         early_obs = county.observed_contrast("early", quantity)
         if early_obs is not None:
             early_shift, early_var, n = early_obs
@@ -395,7 +432,7 @@ def county_specific_effect(county, bucket, quantity, factor):
 def simulate(n_sims=N_SIMS):
     factors = {}
     for bucket in ("early", "dayof", "late"):
-        for quantity in ("B", "S", "T"):
+        for quantity in ("BS", "T"):
             if bucket == "early":
                 factors[(bucket, quantity)] = get_early_factor(quantity)
             elif bucket == "dayof":
@@ -406,11 +443,7 @@ def simulate(n_sims=N_SIMS):
     draws = {}
     for bucket in ("early", "dayof", "late"):
         draws[(bucket, "T")] = draw_factor(factors[(bucket, "T")], n_sims)
-        state_B, state_S, region_B, region_S, tau_B, tau_S = draw_factor_pair_BS(
-            factors[(bucket, "B")], factors[(bucket, "S")], RHO_BS, n_sims
-        )
-        draws[(bucket, "B")] = (state_B, region_B, tau_B)
-        draws[(bucket, "S")] = (state_S, region_S, tau_S)
+        draws[(bucket, "BS")] = draw_factor(factors[(bucket, "BS")], n_sims)
 
     final_B = np.zeros(n_sims)
     final_S = np.zeros(n_sims)
@@ -434,41 +467,28 @@ def simulate(n_sims=N_SIMS):
             adjusted_total = c.projected_total(bucket) * np.exp(turnout_shift)
             remaining = np.maximum(0.0, adjusted_total - reported_n)
 
+            o_share = current_o_share_estimate(c, bucket)
+            bs_share_total = 1 - o_share
+
             pb, ps, po = c.prior_bso(bucket)
-            prior_B_logodds = contrast_logodds(pb, po)
-            prior_S_logodds = contrast_logodds(ps, po)
+            prior_BS_logodds = np.log(pb / ps)
 
-            state_B, region_B, tau_B = draws[(bucket, "B")]
-            state_S, region_S, tau_S = draws[(bucket, "S")]
-            post_mean_B, post_var_B = county_specific_effect(c, bucket, "B", factors[(bucket, "B")])
-            post_mean_S, post_var_S = county_specific_effect(c, bucket, "S", factors[(bucket, "S")])
-            county_noise_B, county_noise_S = correlated_pair(
-                post_mean_B, np.sqrt(post_var_B), post_mean_S, np.sqrt(post_var_S), RHO_BS, n_sims
-            )
-
-            shift_B = state_B + region_B[c.region] + county_noise_B
-            shift_S = state_S + region_S[c.region] + county_noise_S
+            state_BS, region_BS, tau_BS = draws[(bucket, "BS")]
+            post_mean_BS, post_var_BS = county_specific_effect(c, bucket, "BS", factors[(bucket, "BS")])
+            county_noise_BS = RNG.normal(post_mean_BS, np.sqrt(post_var_BS), n_sims)
+            shift_BS = state_BS + region_BS[c.region] + county_noise_BS
 
             sampling_sd = 1 / np.sqrt(np.maximum(remaining, 1))
-            sampling_noise_B, sampling_noise_S = correlated_pair(
-                0, sampling_sd, 0, sampling_sd, RHO_BS, n_sims
-            )
+            sampling_noise_BS = RNG.normal(0, sampling_sd, n_sims)
 
-            logodds_B = prior_B_logodds + shift_B + sampling_noise_B
-            logodds_S = prior_S_logodds + shift_S + sampling_noise_S
-
-            uB = np.exp(logodds_B)
-            uS = np.exp(logodds_S)
-            uO = 1.0
-            total_u = uB + uS + uO
-
-            B_share = uB / total_u
-            S_share = uS / total_u
-            O_share = uO / total_u
+            logodds_BS = prior_BS_logodds + shift_BS + sampling_noise_BS
+            bs_ratio = np.exp(logodds_BS)
+            B_share = (bs_ratio / (1 + bs_ratio)) * bs_share_total
+            S_share = (1 / (1 + bs_ratio)) * bs_share_total
 
             final_B += remaining * B_share
             final_S += remaining * S_share
-            final_O += remaining * O_share
+            final_O += remaining * o_share
 
     total = final_B + final_S + final_O
     return final_B, final_S, final_O, total
@@ -497,9 +517,9 @@ def report_status():
 
 def county_point_estimate_remaining(name):
     county = COUNTIES[name]
-    early_f = {q: get_early_factor(q) for q in ("B", "S", "T")}
-    dayof_f = {q: get_dayof_factor(q) for q in ("B", "S", "T")}
-    late_f = {q: get_late_factor(q) for q in ("B", "S", "T")}
+    early_f = {q: get_early_factor(q) for q in ("BS", "T")}
+    dayof_f = {q: get_dayof_factor(q) for q in ("BS", "T")}
+    late_f = {q: get_late_factor(q) for q in ("BS", "T")}
 
     totals = {"B": 0.0, "S": 0.0, "O": 0.0}
     for bucket, factors in (("early", early_f), ("dayof", dayof_f), ("late", late_f)):
@@ -516,24 +536,22 @@ def county_point_estimate_remaining(name):
         if remaining <= 0:
             continue
 
+        o_share = current_o_share_estimate(county, bucket)
+        bs_share_total = 1 - o_share
+
         pb, ps, po = county.prior_bso(bucket)
-        prior_B_logodds = contrast_logodds(pb, po)
-        prior_S_logodds = contrast_logodds(ps, po)
-        shift_B = factors["B"]["state_mean"] + factors["B"]["region_means"][county.region]
-        shift_S = factors["S"]["state_mean"] + factors["S"]["region_means"][county.region]
-        post_mean_B, _ = county_specific_effect(county, bucket, "B", factors["B"])
-        post_mean_S, _ = county_specific_effect(county, bucket, "S", factors["S"])
-        shift_B += post_mean_B
-        shift_S += post_mean_S
+        prior_BS_logodds = np.log(pb / ps)
+        shift_BS = factors["BS"]["state_mean"] + factors["BS"]["region_means"][county.region]
+        post_mean_BS, _ = county_specific_effect(county, bucket, "BS", factors["BS"])
+        shift_BS += post_mean_BS
 
-        uB = np.exp(prior_B_logodds + shift_B)
-        uS = np.exp(prior_S_logodds + shift_S)
-        uO = 1.0
-        total_u = uB + uS + uO
+        bs_ratio = np.exp(prior_BS_logodds + shift_BS)
+        b_frac_of_bs = bs_ratio / (1 + bs_ratio)
+        s_frac_of_bs = 1 / (1 + bs_ratio)
 
-        totals["B"] += remaining * uB / total_u
-        totals["S"] += remaining * uS / total_u
-        totals["O"] += remaining * uO / total_u
+        totals["B"] += remaining * b_frac_of_bs * bs_share_total
+        totals["S"] += remaining * s_frac_of_bs * bs_share_total
+        totals["O"] += remaining * o_share
 
     return totals
 
