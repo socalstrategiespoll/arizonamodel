@@ -38,7 +38,7 @@ REGIONS = {
 COUNTY_REGION = {c: r for r, cs in REGIONS.items() for c in cs}
 
 _CONFIG = {
-    "Maricopa":   dict(total=346182, early_share=0.6949, early_bso=(0.6898, 0.1773, 0.1329), dayof_bso=(0.7228, 0.1443, 0.1329), late_share=0.0693, late_bso=(0.7228, 0.1443, 0.1329)),
+    "Maricopa":   dict(total=346182, early_share=0.6949, early_bso=(0.6463, 0.2208, 0.1329), dayof_bso=(0.6793, 0.1878, 0.1329), late_share=0.0693, late_bso=(0.6793, 0.1878, 0.1329)),
     "Pima":   dict(total=73200, early_share=0.612, early_bso=(0.6514, 0.2156, 0.1330), dayof_bso=(0.6824, 0.1846, 0.1330)),
     "Yavapai":   dict(total=44971, early_share=0.6377, early_bso=(0.6552, 0.2118, 0.1330), dayof_bso=(0.6882, 0.1788, 0.1330)),
     "Pinal":   dict(total=39405, early_share=0.6577, early_bso=(0.6561, 0.2109, 0.1330), dayof_bso=(0.6891, 0.1779, 0.1330)),
