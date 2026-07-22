@@ -182,6 +182,36 @@ def current_o_share_estimate(county, bucket):
     return po
 
 
+class FirstUpdateClassifier:
+    def __init__(self, name):
+        self.name = name
+        self.first_update_done = False
+        self.cumulative_recorded = (0, 0, 0)
+
+    def update(self, cumulative_b, cumulative_s, cumulative_o):
+        county = COUNTIES[self.name]
+        if not self.first_update_done:
+            county.report("early", cumulative_b, cumulative_s, cumulative_o)
+            self.cumulative_recorded = (cumulative_b, cumulative_s, cumulative_o)
+            self.first_update_done = True
+            return
+
+        prev_b, prev_s, prev_o = self.cumulative_recorded
+        inc_b = max(0, cumulative_b - prev_b)
+        inc_s = max(0, cumulative_s - prev_s)
+        inc_o = max(0, cumulative_o - prev_o)
+
+        existing_dayof = county.reported("dayof") or (0, 0, 0)
+        county.report("dayof",
+                       existing_dayof[0] + inc_b,
+                       existing_dayof[1] + inc_s,
+                       existing_dayof[2] + inc_o)
+        self.cumulative_recorded = (cumulative_b, cumulative_s, cumulative_o)
+
+
+FIRST_UPDATE_CLASSIFIERS = {name: FirstUpdateClassifier(name) for name in COUNTIES if name != "Maricopa"}
+
+
 def dl_pool(estimates, variances):
     estimates = np.array(estimates, dtype=float)
     variances = np.array(variances, dtype=float)
