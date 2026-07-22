@@ -38,21 +38,21 @@ REGIONS = {
 COUNTY_REGION = {c: r for r, cs in REGIONS.items() for c in cs}
 
 _CONFIG = {
-    "Maricopa":   dict(total=305791, early_share=0.7867, early_bso=(0.6898, 0.1773, 0.1329), dayof_bso=(0.7228, 0.1443, 0.1329), late_share=0.0785, late_bso=(0.7228, 0.1443, 0.1329)),
-    "Pima":   dict(total=57831, early_share=0.7747, early_bso=(0.6514, 0.2156, 0.1330), dayof_bso=(0.6824, 0.1846, 0.1330)),
-    "Yavapai":   dict(total=39132, early_share=0.7329, early_bso=(0.6552, 0.2118, 0.1330), dayof_bso=(0.6882, 0.1788, 0.1330)),
-    "Pinal":   dict(total=34478, early_share=0.7517, early_bso=(0.6561, 0.2109, 0.1330), dayof_bso=(0.6891, 0.1779, 0.1330)),
-    "Mohave":   dict(total=30941, early_share=0.6812, early_bso=(0.6627, 0.2043, 0.1330), dayof_bso=(0.6947, 0.1723, 0.1330)),
-    "Cochise":   dict(total=12741, early_share=0.6169, early_bso=(0.6364, 0.2306, 0.1330), dayof_bso=(0.6674, 0.1996, 0.1330)),
-    "Yuma":   dict(total=11831, early_share=0.7286, early_bso=(0.6560, 0.2110, 0.1330), dayof_bso=(0.6880, 0.1790, 0.1330)),
-    "Navajo":   dict(total=17291, early_share=0.3375, early_bso=(0.6523, 0.2147, 0.1330), dayof_bso=(0.6843, 0.1827, 0.1330)),
-    "Coconino":   dict(total=10010, early_share=0.5225, early_bso=(0.6532, 0.2138, 0.1330), dayof_bso=(0.6862, 0.1808, 0.1330)),
-    "Gila":   dict(total=11831, early_share=0.4754, early_bso=(0.6822, 0.1848, 0.1330), dayof_bso=(0.7152, 0.1518, 0.1330)),
-    "Apache":   dict(total=5915, early_share=0.3271, early_bso=(0.6705, 0.1965, 0.1330), dayof_bso=(0.7025, 0.1645, 0.1330)),
-    "Graham":   dict(total=6825, early_share=0.3295, early_bso=(0.6575, 0.2095, 0.1330), dayof_bso=(0.6895, 0.1775, 0.1330)),
-    "La Paz":   dict(total=2730, early_share=0.3512, early_bso=(0.6722, 0.1948, 0.1330), dayof_bso=(0.7042, 0.1628, 0.1330)),
-    "Santa Cruz":   dict(total=1547, early_share=0.649, early_bso=(0.6649, 0.2021, 0.1330), dayof_bso=(0.6969, 0.1701, 0.1330)),
-    "Greenlee":   dict(total=410, early_share=0.651, early_bso=(0.6956, 0.1714, 0.1330), dayof_bso=(0.7296, 0.1374, 0.1330)),
+    "Maricopa":   dict(total=346182, early_share=0.6949, early_bso=(0.6898, 0.1773, 0.1329), dayof_bso=(0.7228, 0.1443, 0.1329), late_share=0.0693, late_bso=(0.7228, 0.1443, 0.1329)),
+    "Pima":   dict(total=73200, early_share=0.612, early_bso=(0.6514, 0.2156, 0.1330), dayof_bso=(0.6824, 0.1846, 0.1330)),
+    "Yavapai":   dict(total=44971, early_share=0.6377, early_bso=(0.6552, 0.2118, 0.1330), dayof_bso=(0.6882, 0.1788, 0.1330)),
+    "Pinal":   dict(total=39405, early_share=0.6577, early_bso=(0.6561, 0.2109, 0.1330), dayof_bso=(0.6891, 0.1779, 0.1330)),
+    "Mohave":   dict(total=35234, early_share=0.5982, early_bso=(0.6627, 0.2043, 0.1330), dayof_bso=(0.6947, 0.1723, 0.1330)),
+    "Cochise":   dict(total=14446, early_share=0.5441, early_bso=(0.6364, 0.2306, 0.1330), dayof_bso=(0.6674, 0.1996, 0.1330)),
+    "Yuma":   dict(total=13627, early_share=0.6326, early_bso=(0.6560, 0.2110, 0.1330), dayof_bso=(0.6880, 0.1790, 0.1330)),
+    "Navajo":   dict(total=12036, early_share=0.4849, early_bso=(0.6523, 0.2147, 0.1330), dayof_bso=(0.6843, 0.1827, 0.1330)),
+    "Coconino":   dict(total=9245, early_share=0.5657, early_bso=(0.6532, 0.2138, 0.1330), dayof_bso=(0.6862, 0.1808, 0.1330)),
+    "Gila":   dict(total=13690, early_share=0.4108, early_bso=(0.6822, 0.1848, 0.1330), dayof_bso=(0.7152, 0.1518, 0.1330)),
+    "Apache":   dict(total=6821, early_share=0.2837, early_bso=(0.6705, 0.1965, 0.1330), dayof_bso=(0.7025, 0.1645, 0.1330)),
+    "Graham":   dict(total=7572, early_share=0.297, early_bso=(0.6575, 0.2095, 0.1330), dayof_bso=(0.6895, 0.1775, 0.1330)),
+    "La Paz":   dict(total=1790, early_share=0.5356, early_bso=(0.6722, 0.1948, 0.1330), dayof_bso=(0.7042, 0.1628, 0.1330)),
+    "Santa Cruz":   dict(total=1723, early_share=0.5827, early_bso=(0.6649, 0.2021, 0.1330), dayof_bso=(0.6969, 0.1701, 0.1330)),
+    "Greenlee":   dict(total=443, early_share=0.6025, early_bso=(0.6956, 0.1714, 0.1330), dayof_bso=(0.7296, 0.1374, 0.1330)),
 }
 
 
@@ -580,6 +580,9 @@ def snapshot(n_sims=N_SIMS):
     margin_over_50_prob = float(np.mean((bShare - sShare) > 50) * 100)
 
     reported_total = sum(c["reported"]["total"] for c in counties_out.values())
+    reported_B = sum(c["reported"]["B"] for c in counties_out.values())
+    reported_S = sum(c["reported"]["S"] for c in counties_out.values())
+    reported_O = sum(c["reported"]["O"] for c in counties_out.values())
     projected_total = sum(COUNTIES[n].total for n in COUNTIES)
 
     statewide_out = {
@@ -594,6 +597,12 @@ def snapshot(n_sims=N_SIMS):
         "oShareMedian": float(np.median(oShare)),
         "totalMedian": float(np.median(total)),
         "reportedTotal": reported_total,
+        "reportedB": reported_B,
+        "reportedS": reported_S,
+        "reportedO": reported_O,
+        "reportedBShare": reported_B / reported_total if reported_total else 0,
+        "reportedSShare": reported_S / reported_total if reported_total else 0,
+        "reportedOShare": reported_O / reported_total if reported_total else 0,
         "projectedTotal": projected_total,
         "pctIn": reported_total / projected_total if projected_total else 0,
     }
