@@ -95,15 +95,9 @@ def get_statewide_totals(data):
     return totals
 
 
-FALLBACK_STATES = {
-    "Maricopa": live_feed.LiveCountyState("Maricopa"),
-    "Pima": live_feed.LiveCountyState("Pima"),
-}
-
-
 def update_model_from_civicapi(skip_counties=None):
     if skip_counties is None:
-        skip_counties = HANDLED_BY_DEDICATED_FEED
+        skip_counties = {"Maricopa"}
 
     data = fetch_race()
     county_breakdown = find_county_breakdown(data)
@@ -119,13 +113,11 @@ def update_model_from_civicapi(skip_counties=None):
     for county_name, totals in county_breakdown.items():
         if county_name in skip_counties:
             continue
+        if county_name not in model.FIRST_UPDATE_CLASSIFIERS:
+            continue
 
-        if county_name in FALLBACK_STATES:
-            FALLBACK_STATES[county_name].classify_and_report(totals)
-            updated.append(county_name)
-        elif county_name in live_feed.LIVE_STATES:
-            live_feed.LIVE_STATES[county_name].classify_and_report(totals)
-            updated.append(county_name)
+        model.FIRST_UPDATE_CLASSIFIERS[county_name].update(totals["B"], totals["S"], totals["O"])
+        updated.append(county_name)
 
     return updated
 
