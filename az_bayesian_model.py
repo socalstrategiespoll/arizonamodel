@@ -212,6 +212,44 @@ class FirstUpdateClassifier:
 FIRST_UPDATE_CLASSIFIERS = {name: FirstUpdateClassifier(name) for name in COUNTIES if name != "Maricopa"}
 
 
+def save_pipeline_state():
+    state = {"classifiers": {}, "counties": {}}
+    for name, clf in FIRST_UPDATE_CLASSIFIERS.items():
+        state["classifiers"][name] = {
+            "first_update_done": clf.first_update_done,
+            "cumulative_recorded": list(clf.cumulative_recorded),
+        }
+    for name, county in COUNTIES.items():
+        state["counties"][name] = {
+            "early": list(county.reported_early) if county.reported_early else None,
+            "dayof": list(county.reported_dayof) if county.reported_dayof else None,
+            "late": list(county.reported_late) if county.reported_late else None,
+        }
+    return state
+
+
+def restore_pipeline_state(state):
+    if not state:
+        return
+    for name, clf_state in state.get("classifiers", {}).items():
+        if name not in FIRST_UPDATE_CLASSIFIERS:
+            continue
+        clf = FIRST_UPDATE_CLASSIFIERS[name]
+        clf.first_update_done = clf_state["first_update_done"]
+        clf.cumulative_recorded = tuple(clf_state["cumulative_recorded"])
+
+    for name, county_state in state.get("counties", {}).items():
+        if name not in COUNTIES:
+            continue
+        county = COUNTIES[name]
+        if county_state.get("early") is not None:
+            county.reported_early = tuple(county_state["early"])
+        if county_state.get("dayof") is not None:
+            county.reported_dayof = tuple(county_state["dayof"])
+        if county_state.get("late") is not None:
+            county.reported_late = tuple(county_state["late"])
+
+
 def dl_pool(estimates, variances):
     estimates = np.array(estimates, dtype=float)
     variances = np.array(variances, dtype=float)
