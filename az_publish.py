@@ -32,6 +32,14 @@ def fetch_gist_content(gist_id, github_token):
         return None
 
 
+def restore_state_from_gist(gist_id, github_token):
+    existing = fetch_gist_content(gist_id, github_token)
+    if existing and "_pipelineState" in existing:
+        model.restore_pipeline_state(existing["_pipelineState"])
+        return True
+    return False
+
+
 def publish_snapshot(gist_id, github_token, n_sims=None):
     snap = model.snapshot(n_sims=n_sims) if n_sims else model.snapshot()
 
@@ -49,6 +57,7 @@ def publish_snapshot(gist_id, github_token, n_sims=None):
         history = history[-MAX_HISTORY_POINTS:]
 
     snap["history"] = history
+    snap["_pipelineState"] = model.save_pipeline_state()
 
     url = f"https://api.github.com/gists/{gist_id}"
     headers = {
